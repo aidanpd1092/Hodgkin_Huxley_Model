@@ -8,7 +8,7 @@
 
 function Hodgkin_Huxley_Model
 % Initialize time vector and time step
-dt = 0.0001; %Time step (ms)
+dt = 0.01; %Time step (ms)
 t = 0:dt:100; %Time (ms)
 
 % Initialize m, n, and h, which represent K+ channel activation, Na+
@@ -40,7 +40,7 @@ C_m = 1.0;      %Membrance capacitance (uF/cm^2)
 I = 0;          %Injected current
 
 % Compute first values before entering the for loop
-V_m(:) = V_rest;
+V_m(:) = 0;
 
 for i = 1:(length(t)-1)
     % Calculate all alpha and beta values
@@ -51,6 +51,7 @@ for i = 1:(length(t)-1)
     alpha_h(i) = 0.07*exp(-1*V_m(i)/20);
     beta_h(i) = 1/(exp((30-V_m(i))/10)+1);
     
+    % Initial conditions
     if(i == 1)
         m(i) = alpha_m(i)/(alpha_m(i) + beta_m(i));
         n(i) = alpha_n(i)/(alpha_n(i) + beta_n(i));
@@ -65,10 +66,11 @@ for i = 1:(length(t)-1)
     
     % Calculate membrane voltage, m, n, and h using Euler's method
     V_m(i+1) = V_m(i) + I_ion/C_m*dt;
-    m(i+1) = m(i) + (alpha_m(i)*(1-m(i))+beta_m(i)*m(i))*dt;
+    m(i+1) = m(i) + (alpha_m(i)*(1-m(i))-beta_m(i)*m(i))*dt;
     n(i+1) = n(i) + (alpha_n(i)*(1-n(i))-beta_n(i)*n(i))*dt;
     h(i+1) = h(i) + (alpha_h(i)*(1-h(i))-beta_h(i)*h(i))*dt;
 end
-
+% n is increasing above 1
+V_m = V_m - 70;
 plot(t, V_m);
 end
